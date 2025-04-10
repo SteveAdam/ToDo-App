@@ -1,0 +1,31 @@
+<div class="todo-container">
+    <div class="input-container">
+      <input type="text" class="task-input" placeholder="Add a new task" [(ngModel)]="newTaskText" (input)="onSearchInput()">
+      <i class="menu-icon" *ngIf="!showAddButton">☰</i>
+      <button *ngIf="showAddButton" class="add-button" (click)="addTask()">Add</button>
+    </div>
+  
+    <div class="filter-container">
+      <div class="filters">
+        <button class="filter-button" [class.active]="currentFilter === 'all'" (click)="filterTasks('all')">All</button>
+        <button class="filter-button" [class.active]="currentFilter === 'pending'" (click)="filterTasks('pending')">Pending</button>
+        <button class="filter-button" [class.active]="currentFilter === 'completed'" (click)="filterTasks('completed')">Completed</button>
+      </div>
+      <button class="clear-button" (click)="clearCompleted()">Clear All</button>
+    </div>
+  
+    <div class="task-list">
+      <div class="task-item" *ngFor="let task of filteredTasks; let i = index">
+        <div class="task-content">
+          <input type="checkbox" [(ngModel)]="task.completed" (change)="onTaskStatusChange(task)">
+          <span class="task-text" [class.completed]="task.completed">{{ task.text }}</span>
+        </div>
+        <div class="task-menu">
+          <div class="menu-dots" (click)="toggleDropdown(i)">⋮</div>
+          <div class="dropdown-menu" *ngIf="task.showDropdown">
+            <div class="dropdown-item" (click)="editTask(task)">Edit</div>
+            <div class="dropdown-item" (click)="deleteTask(task)">Delete</div>
+          </div>
+        </div>
+      </div>
+    </div>
