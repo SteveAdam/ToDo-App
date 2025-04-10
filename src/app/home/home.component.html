@@ -1,8 +1,32 @@
 <div class="todo-container">
     <div class="input-container">
       <input type="text" class="task-input" placeholder="Add a new task" [(ngModel)]="newTaskText" (input)="onSearchInput()">
-      <i class="menu-icon" *ngIf="!showAddButton">☰</i>
+      <i class="menu-icon" *ngIf="!showAddButton" (click)="toggleFiltersPanel()">☰</i>
       <button *ngIf="showAddButton" class="add-button" (click)="addTask()">Add</button>
+    </div>
+  
+    
+    <div class="filters-panel" *ngIf="showFilters">
+      <div class="filters-header">
+        <h3>Filters</h3>
+        <div class="close-icon" (click)="toggleFiltersPanel()">✕</div>
+      </div>
+      <div class="filter-group">
+        <label>Priority:</label>
+        <div class="filter-options">
+          <button class="filter-option" [class.active]="priorityFilter === 'all'" (click)="filterByPriority('all')">All</button>
+          <button class="filter-option" [class.active]="priorityFilter === 'High'" (click)="filterByPriority('High')">High</button>
+          <button class="filter-option" [class.active]="priorityFilter === 'Medium'" (click)="filterByPriority('Medium')">Medium</button>
+          <button class="filter-option" [class.active]="priorityFilter === 'Low'" (click)="filterByPriority('Low')">Low</button>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>Due Date:</label>
+        <input type="date" class="date-input" [value]="dueDateFilter" (change)="filterByDueDate($event)">
+      </div>
+      <div class="filter-actions">
+        <button class="reset-button" (click)="resetFilters()">Reset Filters</button>
+      </div>
     </div>
   
     <div class="filter-container">
@@ -15,17 +39,49 @@
     </div>
   
     <div class="task-list">
-      <div class="task-item" *ngFor="let task of filteredTasks; let i = index">
+      <div class="task-item" *ngFor="let task of filteredTasks; let i = index" (click)="toggleDetails(i)">
         <div class="task-content">
-          <input type="checkbox" [(ngModel)]="task.completed" (change)="onTaskStatusChange(task)">
-          <span class="task-text" [class.completed]="task.completed">{{ task.text }}</span>
+          <input type="checkbox" [(ngModel)]="task.completed" (change)="onTaskStatusChange(task)" (click)="$event.stopPropagation()">
+          <div class="task-info">
+            <span class="task-text" [class.completed]="task.completed">{{ task.text }}</span>
+            <div class="task-meta">
+              <span class="due-date" *ngIf="!task.showDetails">
+                <span *ngIf="getDaysUntilDue(task.DueDate) <= 0" class="overdue">Priority</span>
+                <span *ngIf="getDaysUntilDue(task.DueDate) === 1" class="due-soon">Due tomorrow</span>
+                <span *ngIf="getDaysUntilDue(task.DueDate) > 1 && getDaysUntilDue(task.DueDate) <= 3" class="due-soon">Due in {{ getDaysUntilDue(task.DueDate) }} days</span>
+              </span>
+              <span class="priority-indicator" [ngClass]="getPriorityClass(task.Priority)" *ngIf="!task.showDetails"></span>
+            </div>
+          </div>
         </div>
+        <div style="display: flex; padding-left: 34px; font-size: 12px;">{{task.Priority}}</div>
         <div class="task-menu">
-          <div class="menu-dots" (click)="toggleDropdown(i)">⋮</div>
-          <div class="dropdown-menu" *ngIf="task.showDropdown">
+          <div class="menu-dots" (click)="toggleDropdown(i); $event.stopPropagation()">⋮</div>
+          <div class="dropdown-menu" *ngIf="task.showDropdown" (click)="$event.stopPropagation()">
             <div class="dropdown-item" (click)="editTask(task)">Edit</div>
             <div class="dropdown-item" (click)="deleteTask(task)">Delete</div>
           </div>
         </div>
+  
+        <!-- Task details panel -->
+        <div class="task-details" *ngIf="task.showDetails" (click)="$event.stopPropagation()">
+          <div class="detail-group">
+            <label>Due Date:</label>
+            <input type="date" class="date-input" [value]="task.DueDate" (change)="updateDueDate(task, $event)">
+          </div>
+          <div class="detail-group">
+            <label>Priority:</label>
+            <div class="priority-options">
+              <button class="priority-option" [class.active]="task.Priority === 'High'" (click)="updatePriority(task, 'High')">High</button>
+              <button class="priority-option" [class.active]="task.Priority === 'Medium'" (click)="updatePriority(task, 'Medium')">Medium</button>
+              <button class="priority-option" [class.active]="task.Priority === 'Low'" (click)="updatePriority(task, 'Low')">Low</button>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <div class="empty-state" *ngIf="filteredTasks.length === 0">
+        <p>No tasks found. Add a new task or adjust your filters.</p>
       </div>
     </div>
+  </div>
